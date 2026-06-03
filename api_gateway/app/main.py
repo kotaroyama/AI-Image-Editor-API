@@ -68,6 +68,7 @@ async def upload_image(
     session.commit()
     session.refresh(db_photo)
 
+    # Upload the image to S3 bucket
     s3_client.upload_fileobj(file.file, UPLOAD_BUCKET, object_key)
 
     return PhotoUploadResponse(
