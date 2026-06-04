@@ -1,0 +1,9 @@
+celery
+redis
+boto3
+pillow
+rembg[cpu]
+sqlmodel
+sqlalchemy
+psycopg2-binary
+python-dotenv

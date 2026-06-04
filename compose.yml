@@ -1,4 +1,16 @@
 services:
+  worker:
+    build: ./processing_worker
+    container_name: photo_processor_worker
+    environment:
+      - DATABASE_URL=postgresql://kotaro:kotaro1106@localhost:5432/ai_image_editor
+      - RUSTFS_ENDPOINT=http://localhost:9000
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./processing_worker:/workspace
+    depends_on:
+      - redis
+      - db
   db:
     image: postgres:latest
     container_name: postgres_db
