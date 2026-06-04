@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:latest
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: kotaro
+      POSTGRES_PASSWORD: kotaro1106
+      POSTGRES_DB: ai_image_editor
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: rustfs_local
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      RUSTFS_ACCESS_KEY: ${AWS_ACCESS_KEY_ID}
+      RUSTFS_SECRET_KEY: ${AWS_SECRET_ACCESS_KEY}
+    volumes:
+      - ./rustfs_data:/data
+  redis:
+    image: redis:8
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+volumes:
+  postgres_data:

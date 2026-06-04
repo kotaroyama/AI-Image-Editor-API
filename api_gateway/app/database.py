@@ -1,9 +1,9 @@
 import os
 
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 from sqlmodel import SQLModel, Session, create_engine
 
-load_dotenv()
+load_dotenv(find_dotenv())
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 engine = create_engine(DATABASE_URL)

@@ -7,7 +7,7 @@ import uuid
 import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.security import OAuth2PasswordRequestForm
 from PIL import Image
@@ -19,7 +19,7 @@ from database import create_db_and_tables, get_session
 from models import User, Photo
 from schemas import EditRequest, PhotoUploadResponse, Token, UserCreate, UserRead
 
-load_dotenv()
+load_dotenv(find_dotenv())
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

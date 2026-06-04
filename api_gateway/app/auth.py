@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated
 import os
 
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 import jwt
@@ -14,7 +14,7 @@ from database import get_session
 from models import User
 from schemas import TokenData
 
-load_dotenv()
+load_dotenv(find_dotenv())
 
 SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
 ALGORITHM = "HS256"
