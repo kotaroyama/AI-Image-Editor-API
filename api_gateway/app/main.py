@@ -7,17 +7,18 @@ import uuid
 import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError
+from celery import Celery
 from dotenv import load_dotenv, find_dotenv
-from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.security import OAuth2PasswordRequestForm
 from PIL import Image
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
-from auth import create_access_token, get_current_user, hash_password, verify_password
-from database import create_db_and_tables, get_session
-from models import User, Photo
-from schemas import EditRequest, PhotoUploadResponse, Token, UserCreate, UserRead
+from app.auth import create_access_token, get_current_user, hash_password, verify_password
+from app.database import create_db_and_tables, get_session
+from app.models import EditJob, Photo, User
+from app.schemas import EditRequest, PhotoUploadResponse, Token, UserCreate, UserRead
 
 load_dotenv(find_dotenv())
 
@@ -27,6 +28,9 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
+
+CELERY_BROKER = os.getenv("REDIS_URL")
+celery_client = Celery("image_tasks", broker=CELERY_BROKER, backend=CELERY_BROKER)
 
 s3_client = boto3.client(
     "s3",
@@ -62,6 +66,7 @@ async def upload_image(
 
     # Insert a row to the photos table in the database
     db_photo = Photo(
+        id=image_id,
         owner_id=user_id,
         original_filename=original_filename,
         storage_key=object_key,
@@ -82,43 +87,11 @@ async def upload_image(
         status="uploaded",
     )
 
-def edit_image(filename, user_id, action, params={}):
-    source_key = f"users/{user_id}/photos/{filename}"
-    output_key = f"users/{user_id}/photos/edited_{action}_{filename}"
-
-    local_input = f"/tmp/input_{filename}"
-    local_output = f"/tmp/output_{filename}"
-    
-    try:
-        s3_client.download_file(UPLOAD_BUCKET, source_key, local_input)
-    except ClientError as e:
-        error_code = e.response.get("Error", {}).get("Code")
-        if error_code in ["404", "NoSuchKey"]:
-            print(f"Background Error: Image {filename} not found.")
-        else:
-            print(f"System Storage Error: {e}")
-
-    with Image.open(local_input) as img:
-        if action == "grayscale":
-            processed_img = img.convert("L")
-        elif action == "resize":
-            w, h = params.get("width"), params.get("height")
-            if w == 0 or h == 0:
-                raise HTTPException(status_code=400, detail="Width or height cannot be 0")
-            processed_img = img.resize((w, h), Image.Resampling.LANCZOS)
-        else:
-            raise HTTPException(status_code=400, detail="Unsupported action")
-        processed_img.save(local_output)
-    
-    s3_client.upload_file(local_output, EDIT_BUCKET, output_key)
-
 @app.post("/edit")
 async def edit_image_request(
     current_user: Annotated[User, Depends(get_current_user)],
     request: EditRequest,
-    background_tasks: BackgroundTasks,
-    width: int = 0,
-    height: int = 0
+    session: Annotated[Session, Depends(get_session)],
 ):
     user_id = current_user.id
     filename = f"{request.image_id}.{request.file_extension}"
@@ -130,9 +103,32 @@ async def edit_image_request(
         if e.response.get("Error", {}).get("Code") in ["404", "NoSuchKey"]:
             raise HTTPException(status_code=404, detail="Image not found in storage.")
 
-    sizes = {"width": width, "height": height}
-    background_tasks.add_task(edit_image, filename, user_id, request.action, params=sizes)
-    return {"message": "Editing in progress in the background"}
+    job_id = str(uuid.uuid4())
+
+    # Add the job to the SQL database
+    new_job = EditJob(
+        id=job_id,
+        owner_id=user_id,
+        photo_id=request.image_id,
+        operation=request.action,
+        status="PENDING"
+    )
+    session.add(new_job)
+    session.commit()
+
+    # Send the job to the worker queue
+    celery_client.send_task(
+        "tasks.process_image",
+        args=[
+            job_id,
+            request.image_id,
+            user_id, request.action,
+            request.file_extension,
+            { "width": request.width, "height": request.height },
+        ]
+    )
+    
+    return {"job_id": job_id, "status": "PENDING"}
 
 @app.post("/register")
 async def register(

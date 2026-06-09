@@ -10,9 +10,9 @@ from jwt.exceptions import InvalidTokenError
 from pwdlib import PasswordHash
 from sqlmodel import Session, select
 
-from database import get_session
-from models import User
-from schemas import TokenData
+from app.database import get_session
+from app.models import User
+from app.schemas import TokenData
 
 load_dotenv(find_dotenv())
 

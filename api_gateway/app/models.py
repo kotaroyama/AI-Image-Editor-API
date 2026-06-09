@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+import uuid
 
 from sqlmodel import Field, SQLModel
 
@@ -16,7 +17,13 @@ class User(SQLModel, table=True):
 class Photo(SQLModel, table=True):
     __tablename__ = "photos"
 
-    id: int | None = Field(default=None, primary_key=True)
+    # id: int | None = Field(default=None, primary_key=True)
+    id: uuid.UUID = Field(
+        default_factory=uuid.uuid4,
+        primary_key=True,
+        index=True,
+        nullable=False
+    )
     owner_id: int = Field(foreign_key="users.id")
     original_filename: str = Field(max_length=255)
     storage_key: str = Field(unique=True, index=True)
@@ -28,9 +35,15 @@ class Photo(SQLModel, table=True):
 class EditJob(SQLModel, table=True):
     __name__ = "edit_jobs"
 
-    id: int | None = Field(default=None, primary_key=True)
+    # id: int | None = Field(default=None, primary_key=True)
+    id: uuid.UUID = Field(
+        default_factory=uuid.uuid4,
+        primary_key=True,
+        index=True,
+        nullable=False
+    )
     owner_id: int = Field(foreign_key="users.id")
-    photo_id: int = Field(foreign_key="photos.id")
+    photo_id: uuid.UUID = Field(foreign_key="photos.id")
     operation: str
     status: str
     result_storage_key: str | None = None

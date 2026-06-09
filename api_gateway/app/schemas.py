@@ -1,3 +1,5 @@
+import uuid
+
 from pydantic import BaseModel
 from sqlmodel import SQLModel
 
@@ -24,13 +26,15 @@ class UserRead(SQLModel):
 
 
 class EditRequest(BaseModel):
-    image_id: str
+    image_id: uuid.UUID
     file_extension: str
     action: str
+    width: int | None = None
+    height: int | None = None
 
 
 class PhotoUploadResponse(BaseModel):
-    image_id: int
+    image_id: uuid.UUID
     storage_key: str
     original_filename: str
     status: str

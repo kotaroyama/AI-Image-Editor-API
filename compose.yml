@@ -3,9 +3,11 @@ services:
     build: ./processing_worker
     container_name: photo_processor_worker
     environment:
-      - DATABASE_URL=postgresql://kotaro:kotaro1106@localhost:5432/ai_image_editor
-      - RUSTFS_ENDPOINT=http://localhost:9000
+      - DATABASE_URL=postgresql://kotaro:kotaro1106@host.docker.internal:5432/ai_image_editor
+      - RUSTFS_ENDPOINT=http://host.docker.internal:9000
       - REDIS_URL=redis://redis:6379/0
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
     volumes:
       - ./processing_worker:/workspace
     depends_on:
