@@ -93,16 +93,22 @@ def process_image(
         with Image.open(local_input) as img:
             if action == "grayscale":
                 processed_img = img.convert("L")
+                processed_img.save(local_output)
             elif action == "resize":
                 w, h = params.get("width"), params.get("height")
                 if w == 0 or h == 0:
                     raise ValueError("Width and height cannot be empty for resizing")
                 processed_img = img.resize((w, h), Image.Resampling.LANCZOS)
+                processed_img.save(local_output)
             elif action == "rembg":
                 processed_img = remove(img, session=AI_SESSION)
+                # Save it as png
+                local_output = f"/tmp/output_{image_id}.png"
+                processed_img.save(local_output, format="PNG")
+                output_key = f"users/{user_id}/photos/edited_{action}_{image_id}.png"
             else:
                 raise ValueError(f"Unknown action: {action}")
-            processed_img.save(local_output)
+            
         s3_client.upload_file(local_output, EDIT_BUCKET, output_key)
 
         # Update the database job to "SUCCESS" and store result_storage_key
