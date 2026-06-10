@@ -15,8 +15,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.auth import create_access_token, get_current_user, hash_password, verify_password
-from app.database import create_db_and_tables, get_session
-from app.models import EditJob, Photo, User
+from shared.database import create_db_and_tables, get_session
+from shared.models import EditJob, Photo, User
 from app.schemas import EditRequest, PhotoUploadResponse, Token, UserCreate, UserRead
 
 load_dotenv(find_dotenv())

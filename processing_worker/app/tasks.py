@@ -7,8 +7,8 @@ from celery import Celery
 from PIL import Image
 from rembg import remove, new_session
 
-from app.database import get_session
-from app.models import EditJob
+from shared.database import get_session
+from shared.models import EditJob
 
 s3_client = boto3.client(
     "s3",
