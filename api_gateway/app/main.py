@@ -11,7 +11,6 @@ from celery import Celery
 from dotenv import load_dotenv, find_dotenv
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.security import OAuth2PasswordRequestForm
-from PIL import Image
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 

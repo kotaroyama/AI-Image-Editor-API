@@ -1,13 +1,28 @@
 services:
+  api:
+    build: ./api_gateway
+    container_name: api_gateway
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      RUSTFS_ENDPOINT: ${RUSTFS_ENDPOINT}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
   worker:
     build: ./processing_worker
     container_name: photo_processor_worker
     environment:
-      - DATABASE_URL=postgresql://kotaro:kotaro1106@host.docker.internal:5432/ai_image_editor
-      - RUSTFS_ENDPOINT=http://host.docker.internal:9000
-      - REDIS_URL=redis://redis:6379/0
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      DATABASE_URL: ${DATABASE_URL}
+      RUSTFS_ENDPOINT: ${RUSTFS_ENDPOINT}
+      REDIS_URL: ${REDIS_URL}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
     volumes:
       - ./processing_worker:/workspace
     depends_on:
