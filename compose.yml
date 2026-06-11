@@ -18,9 +18,13 @@ services:
     volumes:
       - ./api_gateway:/workspace
       - ./shared:/workspace/shared:ro
-  worker:
+  worker_base:
     build: ./processing_worker
-    container_name: photo_processor_worker
+    image: photo_processor_base:latest
+    command: ["echo", "Base image built successfully"]
+  grayscale_worker:
+    build: ./processing_worker
+    container_name: pillow_worker
     environment:
       DATABASE_URL: ${DATABASE_URL}
       RUSTFS_ENDPOINT: ${RUSTFS_ENDPOINT}
@@ -31,7 +35,27 @@ services:
     volumes:
       - ./processing_worker:/workspace
       - ./shared:/workspace/shared:ro
+    command: celery -A app.tasks.celery_app worker -Q default_ops --loglevel=info
     depends_on:
+      - worker_base
+      - redis
+      - db
+  rembg_worker:
+    build: ./processing_worker
+    container_name: rembg_worker
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      RUSTFS_ENDPOINT: ${RUSTFS_ENDPOINT}
+      REDIS_URL: ${REDIS_URL}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      PYTHONPATH: /workspace
+    volumes:
+      - ./processing_worker:/workspace
+      - ./shared:/workspace/shared:ro
+    command: celery -A app.tasks.celery_app worker -Q heavy_ai --loglevel=info
+    depends_on:
+      - worker_base
       - redis
       - db
   db:

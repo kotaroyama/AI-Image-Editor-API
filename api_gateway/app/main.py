@@ -116,16 +116,30 @@ async def edit_image_request(
     session.commit()
 
     # Send the job to the worker queue
-    celery_client.send_task(
-        "tasks.process_image",
-        args=[
-            job_id,
-            request.image_id,
-            user_id, request.action,
-            request.file_extension,
-            { "width": request.width, "height": request.height },
-        ]
-    )
+    if request.action == "grayscale":
+        celery_client.send_task(
+            "tasks.grayscale_image",
+            args=[
+                job_id,
+                request.image_id,
+                user_id, request.action,
+                request.file_extension,
+            ],
+            queue="default_ops",
+        )
+    elif request.action == "rembg":
+        celery_client.send_task(
+            "tasks.remove_background",
+            args=[
+                job_id,
+                request.image_id,
+                user_id, request.action,
+                request.file_extension,
+            ],
+            queue="heavy_ai",
+        )
+    else:
+        pass
     
     return {"job_id": job_id, "status": "PENDING"}
 
