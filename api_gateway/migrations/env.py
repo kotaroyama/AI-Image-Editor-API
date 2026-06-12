@@ -5,7 +5,7 @@ from dotenv import load_dotenv, find_dotenv
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from sqlmodel import SQLModel
-from app.models import EditJob, Photo
+from shared.models import EditJob, Photo
 
 from alembic import context
 

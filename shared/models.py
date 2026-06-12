@@ -2,6 +2,8 @@ from datetime import datetime, timezone
 import uuid
 
 from sqlmodel import Field, SQLModel
+from sqlalchemy import Column
+from sqlalchemy.dialects.postgresql import JSONB
 
 
 class User(SQLModel, table=True):
@@ -30,6 +32,10 @@ class Photo(SQLModel, table=True):
     content_type: str = Field(max_length=100)
     file_size: int = Field(ge=0)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    detected_labels: list | None = Field(
+        default=None,
+        sa_column=Column(JSONB)
+    )
 
 
 class EditJob(SQLModel, table=True):
