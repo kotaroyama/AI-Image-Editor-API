@@ -43,7 +43,7 @@ def grayscale_image(
         # Upload the edited image to S3 storage
         upload_image(local_output, output_key)
 
-        # Update the database job to "SUCCESS" and store result_storage_key
+        # Update the database job to "COMPLETED" and store result_storage_key
         update_job_status(job_id, "COMPLETED", result_storage_key=output_key)
 
         print(f"Job {job_id} successfully completed!")
@@ -85,7 +85,7 @@ def remove_background(
         # Upload the edited image to S3 storage
         upload_image(local_output, output_key)
 
-        # Update the database job to "SUCCESS" and store result_storage_key
+        # Update the database job to "COMPLETED" and store result_storage_key
         update_job_status(job_id, "COMPLETED", result_storage_key=output_key)
 
         print(f"Job {job_id} successfully completed!")
@@ -132,8 +132,8 @@ def detect_objects(
         # Upload the edited image to S3 storage
         upload_image(local_output, output_key)
 
-        # Update the database job to "SUCCESS" and store result_storage_key
-        update_job_status(job_id, "COMPLETED")
+        # Update the database job to "COMPLETED" and store result_storage_key
+        update_job_status(job_id, "COMPLETED", result_storage_key=output_key)
     
         print(f"Job {job_id} successfully completed!")
     except Exception as e:

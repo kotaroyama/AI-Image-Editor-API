@@ -154,6 +154,39 @@ async def edit_image_request(
     
     return {"job_id": job_id, "status": "PENDING"}
 
+@app.get("/jobs/{job_id}")
+async def get_job_status(
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+    job_id: uuid.UUID,
+):
+    job = session.get(EditJob, job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Check if the status is "COMPLETED" or not
+    status = job.status
+    if status.upper() == "COMPLETED":
+        storage_key = job.result_storage_key
+        s3_client_public = boto3.client(
+            "s3",
+            endpoint_url=os.environ.get("RUSTFS_ENDPOINT_PUBLIC"),
+            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+            region_name="ap-east-2",
+        )
+        image_url = s3_client_public.generate_presigned_url(
+            ClientMethod="get_object",
+            Params={"Bucket": EDIT_BUCKET, "Key": storage_key},
+            ExpiresIn=6000,
+        )
+        s3_client_public.close()
+        session.close()
+        return {"url": image_url, "status": status, "expires_in": "10 minutes"}
+    
+    session.close()
+    return {"status": status, "description": "Image not ready yet"}
+
 @app.post("/register")
 async def register(
     user_data: UserCreate,
