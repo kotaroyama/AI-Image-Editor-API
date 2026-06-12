@@ -2,8 +2,9 @@ import os
 
 from celery import Celery
 
-from app.services.database import update_job_status
+from app.services.database import update_job_status, insert_detected_objects
 from app.services.storage import download_image, upload_image, remove_remaining_files
+from app.services.vision import get_detected_objects
 from app.editors.basic_ops import grayscale_process_image
 from app.editors.ai_ops import rembg_process_image, yolo_process_image
 
@@ -119,9 +120,14 @@ def detect_objects(
     # Apply the edit logic
     try:
         if action == "yolo":
-            results = yolo_process_image(local_input, local_output)
+            raw_results = yolo_process_image(local_input, local_output)
         else:
             raise ValueError(f"Unknown action: {action}")
+
+        detected_objects = get_detected_objects(raw_results)
+
+        # Insert the detected objects into the photo table.
+        insert_detected_objects(image_id, detected_objects)
 
         # Upload the edited image to S3 storage
         upload_image(local_output, output_key)

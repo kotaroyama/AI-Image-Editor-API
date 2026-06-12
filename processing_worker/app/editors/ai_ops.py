@@ -18,3 +18,5 @@ def yolo_process_image(local_input, local_output):
     rendered_image_bgr = first_result.plot()
     rendered_image_rgb = rendered_image_bgr[..., ::-1]
     Image.fromarray(rendered_image_rgb).save(local_output)
+
+    return results
