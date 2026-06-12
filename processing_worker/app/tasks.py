@@ -4,9 +4,8 @@ from celery import Celery
 
 from app.services.database import update_job_status
 from app.services.storage import download_image, upload_image, remove_remaining_files
-
 from app.editors.basic_ops import grayscale_process_image
-from app.editors.ai_ops import rembg_process_image
+from app.editors.ai_ops import rembg_process_image, yolo_process_image
 
 CELERY_BROKER = os.getenv("REDIS_URL")
 celery_app = Celery("image_tasks", broker=CELERY_BROKER, backend=CELERY_BROKER)
@@ -94,7 +93,7 @@ def remove_background(
         update_job_status(job_id, "FAILED", error_message=str(e))
         remove_remaining_files(local_input, local_output)
         raise
-"""
+
 @celery_app.task(name="tasks.detect_objects", queue="vision_ai")
 def detect_objects(
     job_id: str,
@@ -110,7 +109,7 @@ def detect_objects(
     # Download the image from RustFS
     filename = f"{image_id}.{ext}"
     source_key = f"users/{user_id}/photos/{filename}"
-    output_key = f"users/{user_id}/photos/edited_{action}_{filename}"
+    output_key = f"users/{user_id}/photos/edited_{action}_{image_id}.png"
 
     local_input = f"/tmp/input_{filename}"
     local_output = f"/tmp/output_{filename}"
@@ -119,18 +118,20 @@ def detect_objects(
 
     # Apply the edit logic
     try:
-        with Image.open(local_input) as img:
-            if action == "yolo":
-                pass
-            else:
-                raise ValueError(f"Unknown action: {action}")
+        if action == "yolo":
+            results = yolo_process_image(local_input, local_output)
+        else:
+            raise ValueError(f"Unknown action: {action}")
+
+        # Upload the edited image to S3 storage
+        upload_image(local_output, output_key)
 
         # Update the database job to "SUCCESS" and store result_storage_key
-        update_job_status(job_id, "COMPLETED", result_storage_key=output_key)
+        update_job_status(job_id, "COMPLETED")
+    
         print(f"Job {job_id} successfully completed!")
     except Exception as e:
         print(f"Job {job_id} failed: {str(e)}")
         update_job_status(job_id, "FAILED", error_message=str(e))
         remove_remaining_files(local_input, local_output)
         raise
-"""

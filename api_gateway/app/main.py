@@ -138,6 +138,17 @@ async def edit_image_request(
             ],
             queue="heavy_ai",
         )
+    elif request.action == "yolo":
+        celery_client.send_task(
+            "tasks.detect_objects",
+            args=[
+                job_id,
+                request.image_id,
+                user_id, request.action,
+                request.file_extension,
+            ],
+            queue="vision_ai",
+        )
     else:
         pass
     

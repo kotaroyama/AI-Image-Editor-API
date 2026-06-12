@@ -3,6 +3,8 @@ redis
 boto3
 pillow
 rembg[cpu]
+ultralytics
+opencv-python-headless
 sqlmodel
 sqlalchemy
 psycopg2-binary

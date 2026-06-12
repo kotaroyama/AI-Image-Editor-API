@@ -89,6 +89,21 @@ services:
       - worker_base
       - redis
       - db
+  yolo_worker:
+    build: ./processing_worker
+    container_name: yolo_worker
+    env_file:
+      - .env
+    environment:
+      PYTHONPATH: /workspace
+    volumes:
+      - ./processing_worker:/workspace
+      - ./shared:/workspace/shared:ro
+    command: celery -A app.tasks.celery_app worker -Q vision_ai --loglevel=info
+    depends_on:
+      - worker_base
+      - redis
+      - db
 
 volumes:
   postgres_data:
