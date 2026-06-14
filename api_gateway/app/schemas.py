@@ -29,8 +29,6 @@ class EditRequest(BaseModel):
     image_id: uuid.UUID
     file_extension: str = "jpg"
     action: str
-    width: int | None = None
-    height: int | None = None
 
 
 class PhotoUploadResponse(BaseModel):
