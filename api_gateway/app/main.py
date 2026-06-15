@@ -67,6 +67,48 @@ async def get_uploaded_photo(
         raise HTTPException(status_code=404, detail="Photo not found")
     return photo
 
+@app.get("/me/jobs", response_model=list[JobRead])
+async def get_uploaded_photos(
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+) -> list[EditJob]:
+    jobs = session.exec(select(EditJob).where(EditJob.owner_id == current_user.id))
+    if not jobs:
+        raise HTTPException(status_code=404, detail="No edit jobs found")
+    
+    job_response = []
+    for job in jobs:
+        presigned_url = None
+        if job.status == "COMPLETED" and job.result_storage_key:
+            storage_key = job.result_storage_key
+            s3_client_public = boto3.client(
+                "s3",
+                endpoint_url=os.environ.get("RUSTFS_ENDPOINT_PUBLIC"),
+                aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+                aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+                region_name="ap-east-2",
+            )
+            presigned_url = s3_client_public.generate_presigned_url(
+                ClientMethod="get_object",
+                Params={"Bucket": EDIT_BUCKET, "Key": storage_key},
+                ExpiresIn=6000,
+            )
+            s3_client_public.close()
+
+        job_response.append(
+            JobRead(
+                id=job.id,
+                image_id=job.photo_id,
+                action=job.operation,
+                status=job.status,
+                created_at=job.created_at,
+                updated_at=job.updated_at,
+                url=presigned_url,
+                error_message=job.error_message
+            )
+        )
+    return job_response
+
 @app.get("/me/jobs/{job_id}", response_model=JobRead)
 async def get_job_status(
     job_id: uuid.UUID,
@@ -107,8 +149,8 @@ async def get_job_status(
 
     return JobRead(
         id=job.id,
-        photo_id=job.photo_id,
-        action=job.action,
+        image_id=job.photo_id,
+        action=job.operation,
         status=job.status,
         created_at=job.created_at,
         updated_at=job.updated_at,
