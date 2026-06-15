@@ -47,6 +47,7 @@ class PhotoRead(BaseModel):
 class JobRead(BaseModel):
     id: uuid.UUID
     image_id: uuid.UUID
+    original_filename: str
     action: str
     status: str
 
