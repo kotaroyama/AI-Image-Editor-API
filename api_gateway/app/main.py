@@ -46,6 +46,25 @@ EDIT_BUCKET = "edits"
 s3_client.create_bucket(Bucket=UPLOAD_BUCKET)
 s3_client.create_bucket(Bucket=EDIT_BUCKET)
 
+def get_presigned_url(job):
+    presigned_url = None
+    if job.status == "COMPLETED" and job.result_storage_key:
+        storage_key = job.result_storage_key
+        s3_client_public = boto3.client(
+            "s3",
+            endpoint_url=os.environ.get("RUSTFS_ENDPOINT_PUBLIC"),
+            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+            region_name="ap-east-2",
+        )
+        presigned_url = s3_client_public.generate_presigned_url(
+            ClientMethod="get_object",
+            Params={"Bucket": EDIT_BUCKET, "Key": storage_key},
+            ExpiresIn=6000,
+        )
+        s3_client_public.close()
+    return presigned_url
+
 @app.get("/me/photos", response_model=list[PhotoRead])
 async def get_uploaded_photos(
     current_user: Annotated[User, Depends(get_current_user)],
@@ -78,23 +97,7 @@ async def get_uploaded_photos(
     
     job_response = []
     for job in jobs:
-        presigned_url = None
-        if job.status == "COMPLETED" and job.result_storage_key:
-            storage_key = job.result_storage_key
-            s3_client_public = boto3.client(
-                "s3",
-                endpoint_url=os.environ.get("RUSTFS_ENDPOINT_PUBLIC"),
-                aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-                aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-                region_name="ap-east-2",
-            )
-            presigned_url = s3_client_public.generate_presigned_url(
-                ClientMethod="get_object",
-                Params={"Bucket": EDIT_BUCKET, "Key": storage_key},
-                ExpiresIn=6000,
-            )
-            s3_client_public.close()
-
+        presigned_url = get_presigned_url(job)
         job_response.append(
             JobRead(
                 id=job.id,
@@ -124,26 +127,11 @@ async def get_job_status(
         raise HTTPException(status_code=404, detail="Job not found")
     
     # Generate the presigned URL dynamically if the task completed
-    presigned_url = None
-    if job.status == "COMPLETED" and job.result_storage_key:
-        storage_key = job.result_storage_key
-        s3_client_public = boto3.client(
-            "s3",
-            endpoint_url=os.environ.get("RUSTFS_ENDPOINT_PUBLIC"),
-            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-            region_name="ap-east-2",
-        )
-        presigned_url = s3_client_public.generate_presigned_url(
-            ClientMethod="get_object",
-            Params={"Bucket": EDIT_BUCKET, "Key": storage_key},
-            ExpiresIn=6000,
-        )
-        s3_client_public.close()
+    presigned_url = get_presigned_url(job)
     
     # Fetch matched labels if the action is YOLO
     labels = None
-    if job.action == "yolo" and job.status == "COMPLETED":
+    if job.operation == "yolo" and job.status == "COMPLETED":
         photo = session.exec(select(Photo).where(Photo.id == job.photo_id)).first()
         labels = photo.detected_labels if photo else None
 
