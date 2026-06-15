@@ -17,7 +17,7 @@ from sqlmodel import Session, select
 from app.auth import create_access_token, get_current_user, hash_password, verify_password
 from shared.database import create_db_and_tables, get_session
 from shared.models import EditJob, Photo, User
-from app.schemas import EditRequest, PhotoUploadResponse, Token, UserCreate, UserRead
+from app.schemas import EditRequest, JobRead, PhotoRead, PhotoUploadResponse, Token, UserCreate
 
 load_dotenv(find_dotenv())
 
@@ -45,6 +45,108 @@ UPLOAD_BUCKET = "uploads"
 EDIT_BUCKET = "edits"
 s3_client.create_bucket(Bucket=UPLOAD_BUCKET)
 s3_client.create_bucket(Bucket=EDIT_BUCKET)
+
+@app.get("/me/photos", response_model=list[PhotoRead])
+async def get_uploaded_photos(
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+) -> list[Photo]:
+    photos = session.exec(select(Photo).where(Photo.owner_id == current_user.id))
+    if not photos:
+        raise HTTPException(status_code=404, detail="No uploaded photos found")
+    return photos
+
+@app.get("/me/photos/{photo_id}", response_model=PhotoRead)
+async def get_uploaded_photo(
+    photo_id: uuid.UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+) -> Photo:
+    photo = session.get(Photo, photo_id)
+    if not photo:
+        raise HTTPException(status_code=404, detail="Photo not found")
+    return photo
+
+@app.get("/me/jobs/{job_id}", response_model=JobRead)
+async def get_job_status(
+    job_id: uuid.UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+) -> EditJob:
+    job = session.exec(
+        select(EditJob)
+        .where(EditJob.id == job_id and EditJob.owner_id == current_user.id)
+    ).first()
+
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Generate the presigned URL dynamically if the task completed
+    presigned_url = None
+    if job.status == "COMPLETED" and job.result_storage_key:
+        storage_key = job.result_storage_key
+        s3_client_public = boto3.client(
+            "s3",
+            endpoint_url=os.environ.get("RUSTFS_ENDPOINT_PUBLIC"),
+            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+            region_name="ap-east-2",
+        )
+        presigned_url = s3_client_public.generate_presigned_url(
+            ClientMethod="get_object",
+            Params={"Bucket": EDIT_BUCKET, "Key": storage_key},
+            ExpiresIn=6000,
+        )
+        s3_client_public.close()
+    
+    # Fetch matched labels if the action is YOLO
+    labels = None
+    if job.action == "yolo" and job.status == "COMPLETED":
+        photo = session.exec(select(Photo).where(Photo.id == job.photo_id)).first()
+        labels = photo.detected_labels if photo else None
+
+    return JobRead(
+        id=job.id,
+        photo_id=job.photo_id,
+        action=job.action,
+        status=job.status,
+        created_at=job.created_at,
+        updated_at=job.updated_at,
+        url=presigned_url,
+        detected_labels=labels,
+        error_message=job.error_message
+    )
+
+@app.delete("/me/photos/{photo_id}")
+async def delete_photo(
+    photo_id: uuid.UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+):
+    # Retrieve the photo from the database
+    photo = session.get(Photo, photo_id)
+    if not photo:
+        raise HTTPException(status_code=404, detail="Photo not found")
+    
+    # Gather all the jobs and their keys
+    storage_keys = []
+    for job in photo.jobs:
+        if job.result_storage_key:
+            storage_keys.append(job.result_storage_key)
+    
+    # Delete all files associated with this photo from S3
+    # First, delete from the UPLOAD bucket
+    s3_client.delete_object(Bucket=UPLOAD_BUCKET, Key=photo.storage_key)
+
+    # Next, delete from the EDIT bucket
+    for storage_key in storage_keys:
+        s3_client.delete_object(Bucket=EDIT_BUCKET, Key=storage_key)
+    
+    # Delete the photo from the database
+    session.delete(photo)
+    session.commit()
+
+    return {"status": f"{photo_id} deleted successfully"}
 
 @app.post("/upload")
 async def upload_image(
@@ -159,39 +261,6 @@ async def edit_image_request(
     session.close()
     
     return {"job_id": job_id, "status": "PENDING"}
-
-@app.get("/jobs/{job_id}")
-async def get_job_status(
-    current_user: Annotated[User, Depends(get_current_user)],
-    session: Annotated[Session, Depends(get_session)],
-    job_id: uuid.UUID,
-):
-    job = session.get(EditJob, job_id)
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    
-    # Check if the status is "COMPLETED" or not
-    status = job.status
-    if status.upper() == "COMPLETED":
-        storage_key = job.result_storage_key
-        s3_client_public = boto3.client(
-            "s3",
-            endpoint_url=os.environ.get("RUSTFS_ENDPOINT_PUBLIC"),
-            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-            region_name="ap-east-2",
-        )
-        image_url = s3_client_public.generate_presigned_url(
-            ClientMethod="get_object",
-            Params={"Bucket": EDIT_BUCKET, "Key": storage_key},
-            ExpiresIn=6000,
-        )
-        s3_client_public.close()
-        session.close()
-        return {"url": image_url, "status": status, "expires_in": "10 minutes"}
-    
-    session.close()
-    return {"status": status, "description": "Image not ready yet"}
 
 @app.post("/register")
 async def register(

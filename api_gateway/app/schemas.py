@@ -1,3 +1,5 @@
+from datetime import datetime
+from typing import Dict, Any, List
 import uuid
 
 from pydantic import BaseModel
@@ -36,3 +38,26 @@ class PhotoUploadResponse(BaseModel):
     storage_key: str
     original_filename: str
     status: str
+
+class PhotoRead(BaseModel):
+    id: uuid.UUID
+    storage_key: str
+    original_filename: str
+
+class JobRead(BaseModel):
+    id: uuid.UUID
+    image_id: uuid.UUID
+    action: str
+    status: str
+
+    # Timing metrics
+    created_at: datetime
+    updated_at: datetime | None = None
+
+    # Dynamic Data Results
+    url: str | None = None
+    detected_labels: List[Dict[str, Any]] | None = None
+    error_message: str | None = None
+
+    class Config:
+        from_attributes = True

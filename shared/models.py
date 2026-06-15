@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 import uuid
 
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
 from sqlalchemy import Column
 from sqlalchemy.dialects.postgresql import JSONB
 
@@ -36,6 +36,10 @@ class Photo(SQLModel, table=True):
         default=None,
         sa_column=Column(JSONB)
     )
+    jobs: list["EditJob"] = Relationship(
+        back_populates="photo",
+        cascade_delete=True,
+    )
 
 
 class EditJob(SQLModel, table=True):
@@ -49,7 +53,8 @@ class EditJob(SQLModel, table=True):
         nullable=False
     )
     owner_id: int = Field(foreign_key="users.id")
-    photo_id: uuid.UUID = Field(foreign_key="photos.id")
+    photo_id: uuid.UUID = Field(foreign_key="photos.id", ondelete="CASCADE")
+    photo: "Photo" = Relationship(back_populates="jobs")
     operation: str
     status: str
     result_storage_key: str | None = None
