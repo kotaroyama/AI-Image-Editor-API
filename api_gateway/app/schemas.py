@@ -46,10 +46,12 @@ class PhotoUploadResponse(BaseModel):
     original_filename: str
     status: str
 
+
 class PhotoRead(BaseModel):
     id: uuid.UUID
     storage_key: str
     original_filename: str
+
 
 class JobRead(BaseModel):
     id: uuid.UUID
