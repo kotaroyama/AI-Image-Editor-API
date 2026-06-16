@@ -27,10 +27,17 @@ class UserRead(SQLModel):
     email: str
 
 
-class EditRequest(BaseModel):
+class EditJobBase(BaseModel):
     image_id: uuid.UUID
-    file_extension: str = "jpg"
     action: str
+
+class EditJobRequest(EditJobBase):
+    file_extension: str = "jpg"
+
+class EditJobResponse(EditJobBase):
+    job_id: uuid.UUID
+    original_filename: str
+    status: str
 
 
 class PhotoUploadResponse(BaseModel):

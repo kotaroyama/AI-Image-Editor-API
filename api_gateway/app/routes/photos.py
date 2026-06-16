@@ -6,12 +6,12 @@ import uuid
 from botocore.exceptions import ClientError
 from celery import Celery
 from dotenv import load_dotenv, find_dotenv
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, File, HTTPException, Response, status, UploadFile
 from sqlmodel import Session, select
 
 from app.auth import get_current_user
 from app.services.s3 import s3_client, EDIT_BUCKET, UPLOAD_BUCKET
-from app.schemas import EditRequest, PhotoRead, PhotoUploadResponse
+from app.schemas import EditJobRequest, EditJobResponse, PhotoRead, PhotoUploadResponse
 from shared.database import get_session
 from shared.models import EditJob, Photo, User
 
@@ -46,8 +46,7 @@ async def get_uploaded_photo(
         raise HTTPException(status_code=404, detail="Photo not found")
     return photo
 
-
-@router.delete("/{photo_id}")
+@router.delete("/{photo_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_photo(
     photo_id: uuid.UUID,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -77,7 +76,7 @@ async def delete_photo(
     session.delete(photo)
     session.commit()
 
-    return {"status": f"{photo_id} ({filename}) deleted successfully"}
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.post("/upload")
 async def upload_image(
@@ -105,6 +104,7 @@ async def upload_image(
         content_type=file.content_type,
         file_size=file.size,
     )
+
     session.add(db_photo)
     session.commit()
     session.refresh(db_photo)
@@ -119,14 +119,18 @@ async def upload_image(
         status="uploaded",
     )
 
-@router.post("/edit")
+@router.post("/edit", response_model=EditJobResponse)
 async def edit_image_request(
     current_user: Annotated[User, Depends(get_current_user)],
-    request: EditRequest,
+    request: EditJobRequest,
     session: Annotated[Session, Depends(get_session)],
 ):
     user_id = current_user.id
-    filename = f"{request.image_id}.{request.file_extension}"
+    image_id = request.image_id
+    action = request.action
+    file_extension = request.file_extension
+
+    filename = f"{image_id}.{file_extension}"
     object_key = f"users/{user_id}/photos/{filename}"
 
     try:
@@ -141,46 +145,49 @@ async def edit_image_request(
     new_job = EditJob(
         id=job_id,
         owner_id=user_id,
-        photo_id=request.image_id,
-        operation=request.action,
+        photo_id=image_id,
+        operation=action,
         status="PENDING"
     )
 
     # Send the job to the worker queue
-    if request.action == "grayscale":
+    if action == "grayscale":
         celery_client.send_task(
             "tasks.grayscale_image",
             args=[
                 job_id,
-                request.image_id,
-                user_id, request.action,
-                request.file_extension,
+                image_id,
+                user_id,
+                action,
+                file_extension,
             ],
             queue="default_ops",
         )
         session.add(new_job)
         session.commit()
-    elif request.action == "rembg":
+    elif action == "rembg":
         celery_client.send_task(
             "tasks.remove_background",
             args=[
                 job_id,
-                request.image_id,
-                user_id, request.action,
-                request.file_extension,
+                image_id,
+                user_id,
+                action,
+                file_extension,
             ],
             queue="heavy_ai",
         )
         session.add(new_job)
         session.commit()
-    elif request.action == "yolo":
+    elif action == "yolo":
         celery_client.send_task(
             "tasks.detect_objects",
             args=[
                 job_id,
-                request.image_id,
-                user_id, request.action,
-                request.file_extension,
+                image_id,
+                user_id,
+                action,
+                file_extension,
             ],
             queue="vision_ai",
         )
@@ -189,6 +196,15 @@ async def edit_image_request(
     else:
         raise HTTPException(status_code=422, detail="Action not supported")
     
+    job_status = str(session.exec(select(EditJob.status).where(EditJob.id == job_id)).first())
+    original_filename = str(session.exec(select(Photo.original_filename).where(Photo.id == image_id)).first())
+
     session.close()
     
-    return {"job_id": job_id, "status": "PENDING"}
+    return EditJobResponse(
+        image_id=image_id,
+        original_filename=original_filename,
+        job_id=job_id,
+        action=action,
+        status=job_status,
+    )
