@@ -25,7 +25,7 @@ export default function App() {
           {isLoggedIn ? (
             <>
               <Link to="/">Home</Link>
-              <span >|</span>
+              <span > | </span>
               <button
                 onClick={() => {
                   logout();
