@@ -23,14 +23,14 @@ export default function Login() {
     formData.append("password", password);
 
     try {
-        const response = await api.post("/token", formData);
-        saveToken(response.data.access_token);
-        setIsLoggedIn(true);
-        setLoginFailed(false);
-        navigate("/");
+      const response = await api.post("/token", formData);
+      saveToken(response.data.access_token);
+      setIsLoggedIn(true);
+      setLoginFailed(false);
+      navigate("/");
     } catch (error) {
-        setLoginFailed(true);
-        console.log(error);
+      setLoginFailed(true);
+      console.log(error);
     }
   }
 
