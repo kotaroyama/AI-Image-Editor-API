@@ -10,6 +10,23 @@ type Photo = {
 
 export default function Dashboard() {
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [file, setFile] = useState<File | null>(null);
+
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault();
+
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    
+    try {
+      await api.post("/me/photos/upload", formData);
+      loadPhotos();
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   async function loadPhotos() {
     const response = await api.get("/me/photos");
@@ -28,7 +45,24 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h2>Uploaded Photos</h2>
+      <div>
+        <h3>Upload Photo</h3>
+        <form onSubmit={handleSubmit}>
+          <label htmlFor="file">Choose image to upload</label>
+          <input 
+            type="file"
+            accept="image/*" 
+            onChange={(e) => {
+              if (e.target.files?.[0]) {
+                setFile(e.target.files[0]);
+              }
+            }}
+          />
+          <button type="submit">Submit</button>
+        </form>
+      </div>
+      <br />
+      <h3>Uploaded Photos</h3>
       {photos.toReversed().map((photo: Photo) => (
         <div key={photo.id}>
           <img
