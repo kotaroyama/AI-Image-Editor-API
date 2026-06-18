@@ -49,8 +49,8 @@ class PhotoUploadResponse(BaseModel):
 
 class PhotoRead(BaseModel):
     id: uuid.UUID
-    storage_key: str
     original_filename: str
+    url: str
 
 
 class JobRead(BaseModel):

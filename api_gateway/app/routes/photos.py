@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, Response, status, U
 from sqlmodel import Session, select
 
 from app.auth import get_current_user
-from app.services.s3 import s3_client, EDIT_BUCKET, UPLOAD_BUCKET
+from app.services.s3 import s3_client, get_presigned_url_photo, EDIT_BUCKET, UPLOAD_BUCKET
 from app.schemas import EditJobRequest, EditJobResponse, PhotoRead, PhotoUploadResponse
 from shared.database import get_session
 from shared.models import EditJob, Photo, User
@@ -29,22 +29,43 @@ celery_client = Celery("image_tasks", broker=CELERY_BROKER, backend=CELERY_BROKE
 async def get_uploaded_photos(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[Session, Depends(get_session)],
-) -> list[Photo]:
+) -> list[PhotoRead]:
     photos = session.exec(select(Photo).where(Photo.owner_id == current_user.id))
+
     if not photos:
         raise HTTPException(status_code=404, detail="No uploaded photos found")
-    return photos
+    
+    photo_response = []
+
+    for photo in photos:
+        url = get_presigned_url_photo(photo)
+        photo_response.append(
+            PhotoRead(
+                id=photo.id,
+                original_filename=photo.original_filename,
+                url=url,
+            )
+        )
+
+    return photo_response
 
 @router.get("/{photo_id}", response_model=PhotoRead)
 async def get_uploaded_photo(
     photo_id: uuid.UUID,
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[Session, Depends(get_session)],
-) -> Photo:
+) -> PhotoRead:
     photo = session.get(Photo, photo_id)
     if not photo:
         raise HTTPException(status_code=404, detail="Photo not found")
-    return photo
+    
+    url = get_presigned_url_photo(photo)
+
+    return PhotoRead(
+        id=photo.id,
+        original_filename=photo.original_filename,
+        url=url,
+    )
 
 @router.delete("/{photo_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_photo(
