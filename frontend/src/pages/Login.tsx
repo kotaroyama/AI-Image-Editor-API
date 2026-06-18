@@ -1,6 +1,6 @@
 import React from "react";
 import { useState } from "react";
-import { Link, useOutletContext } from "react-router-dom";
+import { Link, useNavigate, useOutletContext } from "react-router-dom";
 import { api } from "../services/api";
 import { saveToken } from "../services/auth";
 
@@ -13,6 +13,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loginFailed, setLoginFailed] = useState(false);
   const { setIsLoggedIn } = useOutletContext<AuthContextType>();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
@@ -26,6 +27,7 @@ export default function Login() {
         saveToken(response.data.access_token);
         setIsLoggedIn(true);
         setLoginFailed(false);
+        navigate("/");
     } catch (error) {
         setLoginFailed(true);
         console.log(error);
