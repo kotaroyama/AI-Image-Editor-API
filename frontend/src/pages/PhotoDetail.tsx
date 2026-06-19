@@ -14,7 +14,6 @@ export default function PhotoDetail() {
 
   const [photo, setPhoto] = useState<Photo>();
   const [jobStatus, setJobStatus] = useState("IDLE");
-  const [jobUrl, setJobUrl] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
   const pollingIntervalRef = useRef<number | null>(null);
@@ -88,7 +87,6 @@ export default function PhotoDetail() {
           if (pollingIntervalRef.current) {
             clearInterval(pollingIntervalRef.current);
           }
-          setJobUrl(url);
           setJobStatus("SUCCESS");
 
           await triggerAutomaticDownload(url, action, original_filename);
