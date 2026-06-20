@@ -172,6 +172,8 @@ async def edit_image_request(
     )
 
     # Send the job to the worker queue
+    session.add(new_job)
+    session.commit()
     if action == "grayscale":
         celery_client.send_task(
             "tasks.grayscale_image",
@@ -184,8 +186,6 @@ async def edit_image_request(
             ],
             queue="default_ops",
         )
-        session.add(new_job)
-        session.commit()
     elif action == "rembg":
         celery_client.send_task(
             "tasks.remove_background",
@@ -198,8 +198,6 @@ async def edit_image_request(
             ],
             queue="heavy_ai",
         )
-        session.add(new_job)
-        session.commit()
     elif action == "yolo":
         celery_client.send_task(
             "tasks.detect_objects",
@@ -212,8 +210,6 @@ async def edit_image_request(
             ],
             queue="vision_ai",
         )
-        session.add(new_job)
-        session.commit()
     else:
         raise HTTPException(status_code=422, detail="Action not supported")
     
