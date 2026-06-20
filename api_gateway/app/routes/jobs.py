@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 
 from app.auth import get_current_user
-from app.services.s3 import get_presigned_url
+from app.services.s3 import get_presigned_url_job
 from app.schemas import JobRead
 from shared.database import get_session
 from shared.models import EditJob, Photo, User
@@ -26,7 +26,7 @@ async def get_uploaded_photos(
     
     job_response = []
     for job in jobs:
-        presigned_url = get_presigned_url(job)
+        presigned_url = get_presigned_url_job(job)
         job_response.append(
             JobRead(
                 id=job.id,
@@ -57,7 +57,7 @@ async def get_job_status(
         raise HTTPException(status_code=404, detail="Job not found")
     
     # Generate the presigned URL dynamically if the task completed
-    presigned_url = get_presigned_url(job)
+    presigned_url = get_presigned_url_job(job)
     
     # Fetch matched labels if the action is YOLO
     labels = None

@@ -19,6 +19,9 @@ load_dotenv(find_dotenv())
 SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
 ALGORITHM = "HS256"
 
+if not SECRET_KEY:
+    raise ValueError("JWT_SECRET_KEY environment variable is missing!")
+
 password_hash = PasswordHash.recommended()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 

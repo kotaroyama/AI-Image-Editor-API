@@ -18,7 +18,3 @@ app = FastAPI(lifespan=lifespan)
 app.include_router(auth.router)
 app.include_router(photos.router)
 app.include_router(jobs.router)
-
-# Create buckets buckets for storing and editing images
-s3_client.create_bucket(Bucket=UPLOAD_BUCKET)
-s3_client.create_bucket(Bucket=EDIT_BUCKET)
