@@ -55,8 +55,8 @@ export default function Jobs() {
           </Link>
           <span > | </span>
           <button
-            onClick={() =>
-              triggerAutomaticDownload(
+            onClick={async () =>
+              await triggerAutomaticDownload(
                 job.url,
                 job.action,
                 job.original_filename,
