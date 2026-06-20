@@ -26,6 +26,8 @@ export default function App() {
             <>
               <Link to="/">Home</Link>
               <span > | </span>
+              <Link to="/jobs">Jobs</Link>
+              <span > | </span>
               <button
                 onClick={() => {
                   logout();

@@ -4,6 +4,7 @@ import "./index.css";
 import App from "./App";
 import Dashboard from "./pages/Dashboard";
 import IndexRedirect from "./pages/IndexRedirect";
+import Jobs from "./pages/Jobs"
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import PhotoDetail from "./pages/PhotoDetail";
@@ -30,6 +31,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <PhotoDetail />
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: "jobs",
+        element: (
+          <ProtectedRoute>
+            <Jobs />
           </ProtectedRoute>
         )
       }
