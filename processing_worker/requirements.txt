@@ -1,11 +1,13 @@
+--find-links https://download.pytorch.org/whl/cpu
+torch>=2.0.0 --index-url https://download.pytorch.org/whl/cpu
+torchvision>=0.15.0 --index-url https://download.pytorch.org/whl/cpu
+ultralytics
+rembg
 celery
 redis
-boto3
-pillow
-rembg[cpu]
-ultralytics
-opencv-python-headless
-sqlmodel
 sqlalchemy
 psycopg2-binary
-python-dotenv
+pillow
+pi-heif
+sqlmodel
+boto3

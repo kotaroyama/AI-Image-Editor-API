@@ -1,5 +1,5 @@
-from shared.database import get_session
-from shared.models import EditJob, Photo
+from app.database import get_session
+from app.models import EditJob, Photo
 
 def update_job_status(
     job_id: str,

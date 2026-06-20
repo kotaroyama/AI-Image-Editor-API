@@ -9,7 +9,15 @@ from app.editors.basic_ops import grayscale_process_image
 from app.editors.ai_ops import rembg_process_image, yolo_process_image
 
 CELERY_BROKER = os.getenv("REDIS_URL")
-celery_app = Celery("image_tasks", broker=CELERY_BROKER, backend=CELERY_BROKER)
+celery_app = Celery("image_tasks", broker=CELERY_BROKER, backend=None)
+
+celery_app.conf.update(
+    task_ignore_result=True,  # Global fallback configuration
+    broker_pool_limit=10,
+    broker_connection_timeout=2.0,
+    redis_socket_timeout=2.0,
+    redis_socket_connect_timeout=2.0
+)
 
 @celery_app.task(name="tasks.grayscale_image", queue="default_ops")
 def grayscale_image(

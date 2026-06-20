@@ -1,109 +1,24 @@
+version: '3.8'
+
+# 1. This creates a configuration template anchor named "worker_base"
+# It is NOT a container, so Docker won't try to run it.
+x-worker-base: &worker_base
+  build: ./processing_worker
+  entrypoint: ["/bin/bash", "/app/entrypoint.sh"]
+  restart: always
+
 services:
-
-  # ==========================================
-  #    CORE CORE INFRASTRUCTURE DATA LAYER
-  # ==========================================
-  db:
-    image: postgres:latest
-    container_name: postgres_db
-    restart: always
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ai_image_editor
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql
-  rustfs:
-    image: rustfs/rustfs:latest
-    container_name: rustfs_local
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      RUSTFS_ACCESS_KEY: ${AWS_ACCESS_KEY_ID}
-      RUSTFS_SECRET_KEY: ${AWS_SECRET_ACCESS_KEY}
-    volumes:
-      - ./rustfs_data:/data
-  redis:
-    image: redis:8
-    container_name: redis
-    ports:
-      - "6379:6379"
-    restart: unless-stopped
-
-  # ==========================================
-  #    API GATEWAY
-  # ==========================================
-  api:
-    build: ./api_gateway
-    container_name: api_gateway
-    ports:
-      - "8000:8000"
-    depends_on:
-      - db
-      - redis
-    env_file:
-      - .env
-    environment:
-      PYTHONPATH: /workspace
-    volumes:
-      - ./api_gateway:/workspace
-      - ./shared:/workspace/shared:ro
-
-  # ==========================================
-  #   BACKGROUND PROCESSING GRID
-  # ==========================================
-  worker_base:
-    build: ./processing_worker
-    image: photo_processor_base:latest
-    command: ["echo", "Base image built successfully"]
   grayscale_worker:
-    build: ./processing_worker
+    <<: *worker_base  # 2. This injects the build setup and the entrypoint script here
     container_name: pillow_worker
-    env_file:
-      - .env
-    environment:
-      PYTHONPATH: /workspace
-    volumes:
-      - ./processing_worker:/workspace
-      - ./shared:/workspace/shared:ro
-    command: celery -A app.tasks.celery_app worker -Q default_ops --loglevel=info
-    depends_on:
-      - worker_base
-      - redis
-      - db
-  rembg_worker:
-    build: ./processing_worker
-    container_name: rembg_worker
-    env_file:
-      - .env
-    environment:
-      PYTHONPATH: /workspace
-    volumes:
-      - ./processing_worker:/workspace
-      - ./shared:/workspace/shared:ro
-    command: celery -A app.tasks.celery_app worker -Q heavy_ai --loglevel=info
-    depends_on:
-      - worker_base
-      - redis
-      - db
-  yolo_worker:
-    build: ./processing_worker
-    container_name: yolo_worker
-    env_file:
-      - .env
-    environment:
-      PYTHONPATH: /workspace
-    volumes:
-      - ./processing_worker:/workspace
-      - ./shared:/workspace/shared:ro
-    command: celery -A app.tasks.celery_app worker -Q vision_ai --loglevel=info
-    depends_on:
-      - worker_base
-      - redis
-      - db
+    command: ["celery", "-A", "app.tasks.celery_app", "worker", "-Q", "default_ops", "--concurrency=1", "--loglevel=info"]
 
-volumes:
-  postgres_data:
+  rembg_worker:
+    <<: *worker_base  # 2. This injects the build setup and the entrypoint script here
+    container_name: rembg_worker
+    command: ["celery", "-A", "app.tasks.celery_app", "worker", "-Q", "heavy_ai", "--concurrency=1","--loglevel=info"]
+
+  yolo_worker:
+    <<: *worker_base  # 2. This injects the build setup and the entrypoint script here
+    container_name: yolo_worker
+    command: ["celery", "-A", "app.tasks.celery_app", "worker", "-Q", "vision_ai", "--concurrency=1", "--loglevel=info"]

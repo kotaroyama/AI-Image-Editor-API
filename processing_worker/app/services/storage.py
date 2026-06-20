@@ -4,6 +4,9 @@ import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
+EDIT_BUCKET = os.getenv("EDIT_BUCKET")
+UPLOAD_BUCKET = os.getenv("UPLOAD_BUCKET")
+
 s3_client = boto3.client(
     "s3",
     endpoint_url=os.environ.get("RUSTFS_ENDPOINT"),
@@ -12,9 +15,6 @@ s3_client = boto3.client(
     config=Config(signature_version='s3v4'),  # Ensures modern AWS signature compatibility
     region_name="ap-east-2",
 )
-
-UPLOAD_BUCKET = "uploads"
-EDIT_BUCKET = "edits"
 
 def download_image(source_key, local_input, filename):
     try:
