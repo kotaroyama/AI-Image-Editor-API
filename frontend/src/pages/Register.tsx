@@ -7,7 +7,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -81,11 +80,9 @@ export default function Register() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+            <Button type="submit">Register</Button>
           </form>
         </CardContent>
-        <CardFooter>
-          <Button type="submit">Register</Button>
-        </CardFooter>
       </Card>
       {error && <p>{error}</p>}
       {status ? (

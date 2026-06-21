@@ -7,7 +7,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -72,11 +71,9 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+            <Button type="submit">Login</Button>
           </form>
         </CardContent>
-        <CardFooter>
-          <Button type="submit">Login</Button>
-        </CardFooter>
       </Card>
       {loginFailed ? (
         <div>
