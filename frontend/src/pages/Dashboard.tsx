@@ -17,6 +17,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { Spinner } from "@/components/ui/spinner"
 
 import { toast } from "sonner";
 
@@ -31,12 +32,14 @@ type Photo = {
 export default function Dashboard() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [file, setFile] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState<boolean>(false);
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
 
     if (!file) return;
 
+    setSubmitting(true);
     const formData = new FormData();
     formData.append("file", file);
     
@@ -48,9 +51,12 @@ export default function Dashboard() {
       // Clear the file input in the upload form
       const fileInput = document.getElementById("image-input") as HTMLInputElement;
       fileInput.value = "";
+      
+      setSubmitting(false);
 
       loadPhotos();
     } catch (error) {
+      setSubmitting(false);
       toast.error("Photo upload failed")
     }
   }
@@ -114,10 +120,13 @@ export default function Dashboard() {
 
             <Button
               type="submit"
-              disabled={!file}
+              disabled={!file || submitting}
             >
               Upload
             </Button>
+            {submitting && (
+              <Spinner />
+            )}
           </form>
         </CardContent>
       </Card>

@@ -2,6 +2,22 @@ import axios from "axios";
 import { useEffect, useState, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link, useNavigate, useParams } from "react-router-dom";
+
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Spinner } from "@/components/ui/spinner"
+
 import { api } from "../services/api";
 import { triggerAutomaticDownload } from "../services/download.ts"
 
@@ -106,60 +122,121 @@ export default function PhotoDetail() {
   }
 
   return (
-    <div>
+    <div className="mx-auto max-w-7xl">
       <Helmet>
-        <title>{photoId} | AI Image Editor</title>
+        <title>{photo?.original_filename ?? "Photo"} | AI Image Editor</title>
       </Helmet>
+      <div className="mb-6">
+        <Button variant="ghost" asChild>
+          <Link to="/photos">
+            ← Back to Photos
+          </Link>
+        </Button>
+      </div>
 
-      <div>
-        <div>
-          <img
-            src={ photo?.url }
-            alt=""
-            width="600"
-          />
-          <p>{ photo?.original_filename }</p>
-          <button onClick={() => deletePhoto()}>
-            Delete
-          </button>
-        </div>
-        <Link
-          to={"/photos"}
-        >
-          Back
-        </Link>
+      <div className="grid gap-8 lg:grid-cols-2">
+        <Card>
+          <CardContent className="p-4">
+            <img 
+              src={photo?.url}
+              alt={photo?.original_filename} 
+              className="w-full rounded-lg object-contain"
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              Photo Details
+            </CardTitle>
+
+            <CardDescription>
+              {photo?.original_filename}
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <Button
+                disabled={jobStatus === "SUBMITTING" || jobStatus === "PROCESSING"}
+                onClick={() => handleRequestEdit("grayscale")}
+              >
+                {jobStatus === "SUBMITTING"? (
+                  <>
+                    <Spinner />
+                    Submitting...
+                  </>
+                ) :(
+                  "Grayscale"
+                )}
+              </Button>
+
+              <Button
+                disabled={jobStatus === "SUBMITTING" || jobStatus === "PROCESSING"}
+                onClick={() => handleRequestEdit("rembg")}
+              >
+                {jobStatus === "SUBMITTING"? (
+                  <>
+                    <Spinner />
+                    Submitting...
+                  </>
+                ) :(
+                  "Remove Background"
+                )}
+              </Button>
+
+              <Button
+                disabled={jobStatus === "SUBMITTING" || jobStatus === "PROCESSING"}
+                onClick={() => handleRequestEdit("yolo")}
+              >
+                {jobStatus === "SUBMITTING"? (
+                  <>
+                    <Spinner />
+                    Submitting...
+                  </>
+                ) :(
+                  "Detect Objects"
+                )}
+              </Button>
+            </div>
+
+            <div className="border-t pt-4">
+              <Button
+                variant="destructive"
+                onClick={deletePhoto}
+              >
+                Delete Photo
+              </Button>
+            </div>
+            {jobStatus === "SUBMITTING" || jobStatus === "PROCESSING" && (
+              <Alert>
+                <Spinner />
+                <AlertTitle>
+                  Processing
+                </AlertTitle>
+
+                <AlertDescription>
+                  Your image is being processed.
+                  Download will begin automatically when finished.
+                </AlertDescription>
+              </Alert>
+            )
+            }
+            {jobStatus === "ERROR" && (
+              <Alert variant="destructive">
+                <AlertTitle>
+                  Processing Failed
+                </AlertTitle>
+
+                <AlertDescription>
+                  {errorMessage}
+                </AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
       </div>
-      <div>
-        <div>
-          <button
-            disabled={jobStatus === "SUBMITTING" || jobStatus === "PROCESSING"}
-            onClick={() => handleRequestEdit("grayscale")}
-          >
-            {jobStatus === "SUBMITTING" ? "Conecting..." : "Grayscale"}
-          </button>
-          <button
-            disabled={jobStatus === "SUBMITTING" || jobStatus === "PROCESSING"}
-            onClick={() => handleRequestEdit("rembg")}
-          >
-            {jobStatus === "SUBMITTING" ? "Conecting..." : "Remove Background"}
-          </button>
-          <button
-            disabled={jobStatus === "SUBMITTING" || jobStatus === "PROCESSING"}
-            onClick={() => handleRequestEdit("yolo")}
-          >
-            {jobStatus === "SUBMITTING" ? "Conecting..." : "Detect Objects"}
-          </button>
-        </div>
-      </div>
-      {jobStatus === "SUBMITTING" || jobStatus === "PROCESSING" && (
-        <p>Processing... It may take a while...</p>
-      )
-      }
-      {jobStatus === "Error" && (
-        <div>
-          {errorMessage}
-        </div>
-      )}
     </div>
   )
 }
