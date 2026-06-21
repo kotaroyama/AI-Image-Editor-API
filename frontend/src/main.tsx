@@ -1,7 +1,7 @@
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Toaster } from "sonner";
-import "@fontsource/inter";
+import "@fontsource/inter/index.css";
 import "./index.css";
 import App from "./App";
 import Dashboard from "./pages/Dashboard";
