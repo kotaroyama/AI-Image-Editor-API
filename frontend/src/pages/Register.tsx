@@ -1,7 +1,20 @@
+import axios from "axios";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+
+import { Button } from "@/components/ui/button";
+import { 
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label"
+
 import { api } from "../services/api";
-import axios from "axios";
 
 export default function Register() {
   const [username, setUsername] = useState("");
@@ -38,39 +51,56 @@ export default function Register() {
 
   return (
     <div>
-      <h2>Register</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button type="submit">Register</button>
-      </form>
+      <Card>
+        <CardHeader>
+          <CardTitle>Register</CardTitle>
+          <CardDescription>
+            Sign up with your email
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit}>
+            <Label htmlFor="username">Username</Label>
+            <Input
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+            <Label htmlFor="email">Email</Label>
+            <Input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <Label htmlFor="password">Password</Label>
+            <Input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </form>
+        </CardContent>
+        <CardFooter>
+          <Button type="submit">Register</Button>
+        </CardFooter>
+      </Card>
       {error && <p>{error}</p>}
       {status ? (
         <div>
           <h3>Sign up successful!</h3>
         </div>
       ) : (
-        <div>
-          <p>
-            Already have an acccount?
-            <Link to="/login">Login</Link>
-          </p>
+        <div className="text-center text-sm text-muted-foreground">
+          Already have an acccount?{" "}
+          <Link 
+            to="/login"
+            className="font-medium text-primary hover:underline"
+          >
+            Login
+          </Link>
         </div>
       )}
     </div>

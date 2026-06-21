@@ -1,6 +1,19 @@
 import React from "react";
 import { useState } from "react";
 import { Link, useNavigate, useOutletContext } from "react-router-dom";
+
+import { Button } from "@/components/ui/button";
+import { 
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label"
+
 import { api } from "../services/api";
 import { saveToken } from "../services/auth";
 
@@ -36,33 +49,48 @@ export default function Login() {
 
   return (
     <div>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Username" 
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Password" 
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button type="submit">Login</button>
-      </form>
+      <Card>
+        <CardHeader>
+          <CardTitle>Login to your acount</CardTitle>
+          <CardDescription>
+            Enter your username to loging to your account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit}>
+            <Label htmlFor="username">Username</Label>
+            <Input
+              type="text"
+              placeholder="Username" 
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+            <Label htmlFor="password">Password</Label>
+            <Input
+              type="password"
+              placeholder="Password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </form>
+        </CardContent>
+        <CardFooter>
+          <Button type="submit">Login</Button>
+        </CardFooter>
+      </Card>
       {loginFailed ? (
         <div>
           <p>Login Failed</p>
         </div>
       ) : (
-        <div>
-          <p>
-            New to AI Image Editor?
-            <span > </span>
-            <Link to="/register">Sign Up</Link>
-          </p>
+        <div className="text-center text-sm text-muted-foreground">
+          New to AI Image Editor?{" "}
+          <Link
+            to="/register"
+            className="font-medium text-primary hover:underline"
+          >
+            Sign Up
+          </Link>
         </div>
       )}
     </div>
