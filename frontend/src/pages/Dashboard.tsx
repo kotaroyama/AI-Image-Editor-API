@@ -84,20 +84,25 @@ export default function Dashboard() {
         <Button type="submit">Upload</Button>
       </form>
       <h3>Uploaded Photos</h3>
-      <Card className="relative mx-auto w-full max-w-sm pt-0">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {photos.toReversed().map((photo: Photo) => (
-          <div key={photo.id}>
+          <Card
+            key={photo.id}
+            className="overflow-hidden"
+          >
             <img
               src={ photo.url }
               alt={ photo.original_filename }
-              className="relative z-20 aspect-video w-full object-cover"
+              className="aspect-square w-full object-cover"
             />
+
             <CardHeader>
-              <CardTitle>
+              <CardTitle className="truncate">
                 { photo.original_filename }
               </CardTitle>
             </CardHeader>
-            <CardFooter>
+
+            <CardFooter className="gap-2">
               <Button asChild>
                 <Link
                 to={`/photos/${photo.id}`}
@@ -112,9 +117,9 @@ export default function Dashboard() {
                 Delete
               </Button>
             </CardFooter>
-          </div>
+          </Card>
         ))}
-      </Card>
+      </div>
     </div>
   )
 }

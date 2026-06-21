@@ -50,20 +50,25 @@ export default function Jobs() {
   return (
     <div>
       <h3>Last 10 Jobs</h3>
-      <Card className="relative mx-auto w-full max-w-sm pt-0">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {jobs.toSorted((a, b) => b.created_at.localeCompare(a.created_at)).map((job: Job) => (
-          <div key={job.id}>
+          <Card
+            key={job.id}
+            className="overflow-hidden"
+          >
             <img
               src={ job.url }
               alt={ job.original_filename }
-              className="relative z-20 aspect-video w-full object-cover"
+              className="aspect-square w-full object-cover"
             />
+
             <CardHeader>
-              <CardTitle>
+              <CardTitle className="truncate">
                 { capitalize(job.action) }
               </CardTitle>
             </CardHeader>
-            <CardFooter>
+
+            <CardFooter className="gap-2">
               <Link
                 to={`/photos/${job.image_id}`}
               >
@@ -77,12 +82,12 @@ export default function Jobs() {
                 Download
               </Button>
             </CardFooter>
-            <div className="text-sm">
-              Job requested at { formatTimestamp(job.created_at) }
+            <div className="px-6 pb-4 text-xs text-muted-foreground">
+              Requested {formatTimestamp(job.created_at)}
             </div>
-          </div>
+          </Card>
         ))}
-      </Card>
+      </div>
     </div>
   )
 }
