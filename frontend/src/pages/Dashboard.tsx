@@ -1,6 +1,21 @@
 import { useEffect, useState } from "react";
-import { api } from "../services/api";
 import { Link } from "react-router-dom";
+
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Field,
+  FieldDescription,
+  FieldLabel,
+} from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+
+import { api } from "../services/api";
 
 type Photo = {
   id: string,
@@ -22,6 +37,11 @@ export default function Dashboard() {
     
     try {
       await api.post("/me/photos/upload", formData);
+
+      // Clear the file input in the upload form
+      const fileInput = document.getElementById("image-input") as HTMLInputElement;
+      fileInput.value = "";
+
       loadPhotos();
     } catch (error) {
       console.log(error);
@@ -45,11 +65,12 @@ export default function Dashboard() {
 
   return (
     <div>
-      <div>
-        <h3>Upload Photo</h3>
-        <form onSubmit={handleSubmit}>
-          <label htmlFor="file">Choose image to upload</label>
-          <input 
+      <h3>Upload Photo</h3>
+      <form onSubmit={handleSubmit}>
+        <Field>
+          <FieldLabel htmlFor="file">Image</FieldLabel>
+          <Input
+            id="image-input"
             type="file"
             accept="image/*" 
             onChange={(e) => {
@@ -58,28 +79,42 @@ export default function Dashboard() {
               }
             }}
           />
-          <button type="submit">Submit</button>
-        </form>
-      </div>
-      <br />
+          <FieldDescription>Choose an image to upload</FieldDescription>
+        </Field>
+        <Button type="submit">Upload</Button>
+      </form>
       <h3>Uploaded Photos</h3>
-      {photos.toReversed().map((photo: Photo) => (
-        <div key={photo.id}>
-          <img
-            src={ photo.url }
-            alt={ photo.original_filename }
-            width="600"
-          />
-          <Link
-            to={`/photos/${photo.id}`}
-          >
-            { photo.original_filename }
-          </Link>
-          <button onClick={() => deletePhoto(photo.id)}>
-            Delete
-          </button>
-        </div>
-      ))}
+      <Card className="relative mx-auto w-full max-w-sm pt-0">
+        {photos.toReversed().map((photo: Photo) => (
+          <div key={photo.id}>
+            <img
+              src={ photo.url }
+              alt={ photo.original_filename }
+              className="relative z-20 aspect-video w-full object-cover"
+            />
+            <CardHeader>
+              <CardTitle>
+                { photo.original_filename }
+              </CardTitle>
+            </CardHeader>
+            <CardFooter>
+              <Button asChild>
+                <Link
+                to={`/photos/${photo.id}`}
+                >
+                  Edit Image
+                </Link>
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => deletePhoto(photo.id)}
+              >
+                Delete
+              </Button>
+            </CardFooter>
+          </div>
+        ))}
+      </Card>
     </div>
   )
 }

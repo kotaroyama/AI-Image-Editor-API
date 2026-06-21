@@ -82,7 +82,7 @@ export default function PhotoDetail() {
     pollingIntervalRef.current = setInterval(async () => {
       try {
         const response = await api.get(`/me/jobs/${jobId}`);
-        const { original_filename, action, status, url } = response.data;
+        const { status, url } = response.data;
 
         if (status === "COMPLETED") {
           if (pollingIntervalRef.current) {
@@ -90,7 +90,7 @@ export default function PhotoDetail() {
           }
           setJobStatus("SUCCESS");
 
-          await triggerAutomaticDownload(url, action, original_filename);
+          await triggerAutomaticDownload(url);
         } else if (status === "FAILED") {
           setJobStatus("ERROR");
           setErrorMessage("The processing worker encountered an error");
