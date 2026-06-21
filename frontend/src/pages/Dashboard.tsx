@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 
+import { toast } from "sonner";
+
 import { api } from "../services/api";
 
 type Photo = {
@@ -40,13 +42,15 @@ export default function Dashboard() {
     try {
       await api.post("/me/photos/upload", formData);
 
+      toast.success("Photo uploaded successfully");
+
       // Clear the file input in the upload form
       const fileInput = document.getElementById("image-input") as HTMLInputElement;
       fileInput.value = "";
 
       loadPhotos();
     } catch (error) {
-      console.log(error);
+      toast.error("Photo upload failed")
     }
   }
 
@@ -58,6 +62,7 @@ export default function Dashboard() {
 
   async function deletePhoto(photoId: string) {
     await api.delete(`/me/photos/${photoId}`);
+    toast.success("Photo deleted successfully");
     await loadPhotos();
   }
 
