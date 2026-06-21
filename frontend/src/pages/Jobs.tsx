@@ -91,7 +91,7 @@ export default function Jobs() {
               </Link>
               <Button
                 onClick={async () =>
-                  await triggerAutomaticDownload(job.url,)
+                  await triggerAutomaticDownload(job.url)
                 }
               >
                 Download
