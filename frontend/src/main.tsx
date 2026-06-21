@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import PhotoDetail from "./pages/PhotoDetail";
 import ProtectedRoute from "./components/ProtectedRoute";
+import GuestRoute from "./components/GuestRoute";
 
 const router = createBrowserRouter([
   { 
@@ -17,8 +18,22 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       { index: true, element: <IndexRedirect />},
-      { path: "login", element: <Login /> },
-      { path: "register", element: <Register />},
+      { 
+        path: "login",
+        element: (
+          <GuestRoute>
+            <Login />
+          </GuestRoute>
+        )
+      },
+      {
+        path: "register",
+        element: (
+          <GuestRoute>
+            <Register />
+          </GuestRoute>
+        )
+      },
       {
         path: "photos",
         element: (
