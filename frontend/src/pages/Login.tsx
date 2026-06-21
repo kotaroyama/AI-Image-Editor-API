@@ -7,7 +7,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -48,68 +47,49 @@ export default function Login() {
   }
 
   return (
-    <div className="flex justify-center px-4 py-8">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">
-            Login
-          </CardTitle>
+    <div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Login to your acount</CardTitle>
           <CardDescription>
             Enter your username to loging to your account
           </CardDescription>
         </CardHeader>
-
         <CardContent>
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-4"
-          >
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                type="text"
-                placeholder="Enter your username" 
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            {loginFailed && (
-              <p className="text-sm text-desctructive">
-                Invalid username or password.
-              </p>
-            )}
-            <Button 
-              type="submit"
-              className="w-full"
-            >
-              Login
-            </Button>
+          <form onSubmit={handleSubmit}>
+            <Label htmlFor="username">Username</Label>
+            <Input
+              type="text"
+              placeholder="Username" 
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+            <Label htmlFor="password">Password</Label>
+            <Input
+              type="password"
+              placeholder="Password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <Button type="submit">Login</Button>
           </form>
         </CardContent>
-        <CardFooter className="justify-center">
-          <p className="text-sm text-muted-foreground">
-            New to AI Image Editor?{" "}
-            <Link
-              to="/register"
-              className="font-medium text-primary hover:underline"
-            >
-              Sign Up
-            </Link>
-          </p>
-        </CardFooter>
       </Card>
+      {loginFailed ? (
+        <div>
+          <p>Login Failed</p>
+        </div>
+      ) : (
+        <div className="text-center text-sm text-muted-foreground">
+          New to AI Image Editor?{" "}
+          <Link
+            to="/register"
+            className="font-medium text-primary hover:underline"
+          >
+            Sign Up
+          </Link>
+        </div>
+      )}
     </div>
-  );
+  )
 }
