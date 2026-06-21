@@ -157,10 +157,11 @@ export default function PhotoDetail() {
           </CardHeader>
 
           <CardContent className="space-y-4">
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <Button
                 disabled={jobStatus === "SUBMITTING" || jobStatus === "PROCESSING"}
                 onClick={() => handleRequestEdit("grayscale")}
+                className="sm:w-auto"
               >
                 {jobStatus === "SUBMITTING"? (
                   <>
@@ -175,6 +176,7 @@ export default function PhotoDetail() {
               <Button
                 disabled={jobStatus === "SUBMITTING" || jobStatus === "PROCESSING"}
                 onClick={() => handleRequestEdit("rembg")}
+                className="sm:w-auto"
               >
                 {jobStatus === "SUBMITTING"? (
                   <>
@@ -189,6 +191,7 @@ export default function PhotoDetail() {
               <Button
                 disabled={jobStatus === "SUBMITTING" || jobStatus === "PROCESSING"}
                 onClick={() => handleRequestEdit("yolo")}
+                className="sm:w-auto"
               >
                 {jobStatus === "SUBMITTING"? (
                   <>

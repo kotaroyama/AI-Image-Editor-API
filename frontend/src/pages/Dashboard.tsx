@@ -161,8 +161,11 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
 
-            <CardFooter className="gap-2">
-              <Button asChild>
+            <CardFooter className="flex flex-col gap-3 sm:flex-row">
+              <Button 
+                asChild
+                className="sm:w-auto"
+              >
                 <Link
                 to={`/photos/${photo.id}`}
                 >
@@ -172,6 +175,7 @@ export default function Dashboard() {
               <Button
                 variant="destructive"
                 onClick={() => deletePhoto(photo.id)}
+                className="sm:w-auto"
               >
                 Delete
               </Button>

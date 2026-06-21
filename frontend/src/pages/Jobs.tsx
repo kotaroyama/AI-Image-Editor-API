@@ -83,7 +83,7 @@ export default function Jobs() {
               </CardTitle>
             </CardHeader>
 
-            <CardFooter className="gap-2">
+            <CardFooter className="flex flex-col gap-2 sm:flex-row">
               <Link
                 to={`/photos/${job.image_id}`}
               >
