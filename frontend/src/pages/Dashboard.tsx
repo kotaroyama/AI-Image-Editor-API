@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,10 @@ export default function Dashboard() {
 
   return (
     <div>
+      <Helmet>
+        <title>Dashboard | AI Image Editor</title>
+      </Helmet>
+
       <Card className="mb-8">
         <CardHeader>
           <CardTitle>Upload Photo</CardTitle>

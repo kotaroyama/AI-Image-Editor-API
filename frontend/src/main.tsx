@@ -1,4 +1,5 @@
 import ReactDOM from "react-dom/client";
+import { HelmetProvider } from "react-helmet-async";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Toaster } from "sonner";
 import "@fontsource/inter/index.css";
@@ -65,8 +66,8 @@ const router = createBrowserRouter([
 
 const root = ReactDOM.createRoot(document.getElementById("root")!);
 root.render(
-  <>
+  <HelmetProvider>
     <RouterProvider router={router} />
     <Toaster richColors />
-  </>
+  </HelmetProvider>
 );

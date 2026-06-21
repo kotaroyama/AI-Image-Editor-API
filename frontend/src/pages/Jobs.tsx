@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,10 @@ export default function Jobs() {
 
   return (
     <div>
+      <Helmet>
+        <title>Jobs | AI Image Editor</title>
+      </Helmet>
+      
       <div className="mb-6 flex item-center justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">

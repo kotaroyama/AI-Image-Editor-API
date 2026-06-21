@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useEffect, useState, useRef } from "react";
+import { Helmet } from "react-helmet-async";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../services/api";
 import { triggerAutomaticDownload } from "../services/download.ts"
@@ -106,6 +107,10 @@ export default function PhotoDetail() {
 
   return (
     <div>
+      <Helmet>
+        <title>{photoId} | AI Image Editor</title>
+      </Helmet>
+
       <div>
         <div>
           <img

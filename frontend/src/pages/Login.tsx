@@ -1,5 +1,6 @@
 import React from "react";
 import { useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { Link, useNavigate, useOutletContext } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,10 @@ export default function Login() {
 
   return (
     <div className="flex justify-center px-4 py-8">
+      <Helmet>
+        <title>Login | AI Image Editor</title>
+      </Helmet>
+
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">
