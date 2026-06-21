@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Card,
+  CardContent,
+  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -65,25 +67,63 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h3>Upload Photo</h3>
-      <form onSubmit={handleSubmit}>
-        <Field>
-          <FieldLabel htmlFor="file">Image</FieldLabel>
-          <Input
-            id="image-input"
-            type="file"
-            accept="image/*" 
-            onChange={(e) => {
-              if (e.target.files?.[0]) {
-                setFile(e.target.files[0]);
-              }
-            }}
-          />
-          <FieldDescription>Choose an image to upload</FieldDescription>
-        </Field>
-        <Button type="submit">Upload</Button>
-      </form>
-      <h3>Uploaded Photos</h3>
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Upload Photo</CardTitle>
+        <CardDescription>
+          Upload an image to edit with AI tools
+        </CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          <form 
+            onSubmit={handleSubmit}
+            className="space-y-4"
+          >
+            <Field>
+              <FieldLabel htmlFor="image-input">Image</FieldLabel>
+              <Input
+                id="image-input"
+                type="file"
+                accept="image/*" 
+                onChange={(e) => {
+                  if (e.target.files?.[0]) {
+                    setFile(e.target.files[0]);
+                  }
+                }}
+              />
+
+              <FieldDescription>Choose an image to upload</FieldDescription>
+            </Field>
+
+            {file && (
+              <p className="text-sm text-muted-foreground">
+                Selected: {file.name}
+              </p>
+            )}
+
+            <Button
+              type="submit"
+              disabled={!file}
+            >
+              Upload
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <div className="mb-6 flex item-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">
+            Uploaded Photos
+          </h2>
+        </div>
+
+        <p className="text-sm text-muted-foreground">
+          {photos.length} photo{photos.length !== 1 ? "s": ""}
+        </p>
+      </div>
+      
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {photos.toReversed().map((photo: Photo) => (
           <Card

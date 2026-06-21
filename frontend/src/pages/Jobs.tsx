@@ -49,7 +49,17 @@ export default function Jobs() {
 
   return (
     <div>
-      <h3>Last 10 Jobs</h3>
+      <div className="mb-6 flex item-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">
+            Edited Photos
+          </h2>
+        </div>
+
+        <p className="text-sm text-muted-foreground">
+          {jobs.length} job{jobs.length !== 1 ? "s": ""}
+        </p>
+      </div>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {jobs.toSorted((a, b) => b.created_at.localeCompare(a.created_at)).map((job: Job) => (
           <Card
