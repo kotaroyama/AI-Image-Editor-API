@@ -19,6 +19,7 @@ In addition, when I was thinking of what to make for my third  portfolio project
 - User registration JWT authentication
 
 ## Architecture
+```text
 [React Client (Vercel)] 
          │
     (HTTPS + CORS)
@@ -31,6 +32,7 @@ In addition, when I was thinking of what to make for my third  portfolio project
                                                      │
                                                      ▼
                                             [Celery Worker Cluster] ──► [Amazon S3]
+```
 
 ## System Design
 1. User uploads image
