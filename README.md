@@ -19,19 +19,22 @@ In addition, when I was thinking of what to make for my third  portfolio project
 - User registration JWT authentication
 
 ## Architecture
-```text
-[React Client (Vercel)] 
-         │
-    (HTTPS + CORS)
-         ▼
-[Application Load Balancer] ────► [FastAPI Gateway (EC2 ARM64)]
-                                           │         │
-                              (SQL Commit) │         │ (Dispatch Task)
-                                           ▼         ▼
-                                    [Database]   [Redis Broker]
-                                                     │
-                                                     ▼
-                                            [Celery Worker Cluster] ──► [Amazon S3]
+```mermaid
+graph TD
+    React["React Client (Vercel)"]
+    ALB["Application Load Balancer"]
+    Gateway["FastAPI Gateway (EC2 ARM64)"]
+    DB[("Database")]
+    Redis["Redis Broker"]
+    Celery["Celery Worker Cluster"]
+    S3["Amazon S3"]
+
+    React -->|HTTPS + CORS| ALB
+    ALB --> Gateway
+    Gateway -->|SQL Commit| DB
+    Gateway -->|Dispatch Task| Redis
+    Redis --> Celery
+    Celery --> S3
 ```
 
 ## System Design
