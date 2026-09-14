@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-AI Image Editor is a full-stack web application that allows users to upload images, apply AI-assisted editing, and download the edited images. It uses FastAPI in the backend with Celery workers for image prosessing and S3 to image storage.
+AI Image Editor is a full-stack web application that allows users to upload images, apply AI-assisted editing, and download the edited images. It uses FastAPI in the backend with Celery workers for image prosessing and S3 for image storage.
 
 Live Demo at: https://www.ai-image.dev
 API Demo at: https://api.ai-image.dev/docs
